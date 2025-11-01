@@ -5,6 +5,7 @@ import 'package:pagination_and_theme_task/bloc_observer.dart';
 import 'package:pagination_and_theme_task/config/routing/app_router.dart';
 import 'package:pagination_and_theme_task/config/theme/app_theme.dart';
 import 'package:pagination_and_theme_task/core/di/dependency_injection.dart';
+import 'package:pagination_and_theme_task/core/theme/theme_controller.dart';
 import 'package:pagination_and_theme_task/core/storage/cache_helper.dart';
 import 'package:pagination_and_theme_task/core/storage/lang.dart';
 
@@ -36,19 +37,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  ThemeMode themeMode = ThemeMode.system;
-
-  @override
-  void initState() {
-    super.initState();
-    // load cached theme preference if exists
-    final t = AppSharedPreferences.getString(key: 'theme_mode');
-    if (t != null && t == 'dark') {
-      themeMode = ThemeMode.dark;
-    } else if (t != null && t == 'light') {
-      themeMode = ThemeMode.light;
-    }
-  }
+  // Theme is handled via ThemeController registered in GetIt
 
   @override
   void didChangeDependencies() {
@@ -59,16 +48,22 @@ class _MyAppState extends State<MyApp> {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      debugShowCheckedModeBanner: false,
-      localizationsDelegates: context.localizationDelegates,
-      supportedLocales: context.supportedLocales,
-      locale: context.locale,
+    final themeController = getIt<ThemeController>();
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: themeController,
+      builder: (context, mode, child) {
+        return MaterialApp.router(
+          debugShowCheckedModeBanner: false,
+          localizationsDelegates: context.localizationDelegates,
+          supportedLocales: context.supportedLocales,
+          locale: context.locale,
 
-      routerConfig: router,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: themeMode,
+          routerConfig: router,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: mode,
+        );
+      },
     );
   }
 }

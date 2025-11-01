@@ -7,6 +7,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pagination_and_theme_task/core/di/dependency_injection.dart';
 import 'package:pagination_and_theme_task/features/products/presentation/pages/products_page.dart';
 import 'package:pagination_and_theme_task/features/products/presentation/cubit/products_cubit.dart';
+import 'package:pagination_and_theme_task/features/products/presentation/pages/product_details_page.dart';
+import 'package:pagination_and_theme_task/features/products/data/models/product_model.dart';
 import 'package:pagination_and_theme_task/config/routing/routes.dart';
 // import 'package:pagination_and_theme_task/core/di/dependency_injection.dart';
 
@@ -89,6 +91,22 @@ final GoRouter router = GoRouter(
         ),
         textDirection: TextDirection.ltr,
       ),
+    ),
+    GoRoute(
+      path: Routes.productDetailsPage,
+      pageBuilder: (context, state) {
+        final extra = state.extra;
+        ProductModel? product;
+        if (extra is ProductModel) product = extra;
+        return _buildPageWithSlideTransition(
+          context: context,
+          state: state,
+          child: product != null
+              ? ProductDetailsPage(product: product)
+              : const Scaffold(body: Center(child: Text('Product not found'))),
+          textDirection: TextDirection.ltr,
+        );
+      },
     ),
   ],
 );

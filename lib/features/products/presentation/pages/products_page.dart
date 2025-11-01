@@ -3,6 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pagination_and_theme_task/core/widgets/list_view_pagination.dart';
 import 'package:pagination_and_theme_task/features/products/presentation/cubit/products_cubit.dart';
 import 'package:pagination_and_theme_task/features/products/data/models/product_model.dart';
+import 'package:go_router/go_router.dart';
+import 'package:pagination_and_theme_task/core/di/dependency_injection.dart';
+import 'package:pagination_and_theme_task/core/theme/theme_controller.dart';
+import 'package:pagination_and_theme_task/core/storage/cache_helper.dart';
+import 'package:pagination_and_theme_task/config/routing/routes.dart';
 
 class ProductsPage extends StatefulWidget {
   const ProductsPage({super.key});
@@ -24,8 +29,34 @@ class _ProductsPageState extends State<ProductsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final themeController = getIt<ThemeController>();
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Products')),
+      appBar: AppBar(
+        title: const Text('Products'),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: ValueListenableBuilder<ThemeMode>(
+              valueListenable: themeController,
+              builder: (context, value, _) {
+                final isDark = value == ThemeMode.dark;
+                return Switch(
+                  value: isDark,
+                  onChanged: (v) async {
+                    final newMode = v ? ThemeMode.dark : ThemeMode.light;
+                    themeController.value = newMode;
+                    await AppSharedPreferences.setString(
+                      key: 'theme_mode',
+                      value: v ? 'dark' : 'light',
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
       body: BlocBuilder<ProductsCubit, ProductsState>(
         builder: (context, state) {
           List<ProductModel> items = [];
@@ -55,6 +86,10 @@ class _ProductsPageState extends State<ProductsPage> {
                     }
                     final product = items[index];
                     return ListTile(
+                      onTap: () {
+                        // Navigate to details and pass the product as extra
+                        context.push(Routes.productDetailsPage, extra: product);
+                      },
                       leading: product.thumbnail.isNotEmpty
                           ? Image.network(
                               product.thumbnail,
